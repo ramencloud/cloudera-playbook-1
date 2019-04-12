@@ -44,6 +44,7 @@
 
 # Install Cloudera Manager Python API
 - include: api.yml
+  delegate_to: localhost
 
 # Retrieve auto-generated host IDs from SCM
 - name: Get SCM hostIds for inventory hosts
