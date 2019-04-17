@@ -11,3 +11,8 @@ admin_server: w2k8-1.ad.sec.cloudera.com
 
 # 'ad', 'mit', or 'none' to disable security
 krb5_kdc_type: mit
+
+cdh_version: 5.8.3
+scm_version: 5.8.3
+
+cloudera_mirror: https://archive.cloudera.com
