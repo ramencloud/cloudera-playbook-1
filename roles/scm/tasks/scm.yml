@@ -27,14 +27,19 @@
     state: absent
   delegate_to: localhost
 
-# https://cloudera.github.io/cm_api/apidocs/v13/path__cm_commands_importAdminCredentials.html
-- name: Import KDC admin credentials
-  uri:
-    url: "{{ cm_api_url }}/cm/commands/importAdminCredentials?username={{ krb5_kdc_admin_user }}&password={{ krb5_kdc_admin_passwd }}"
-    method: POST
-    status_code: 200
-    force_basic_auth: yes
-    user: "{{ scm_default_user }}"
-    password: "{{ scm_default_pass }}"
-    return_content: yes
+- block:
+  - set_fact:
+      kdc_admin_user: "{{ hostvars[groups['krb5_server'][0]]['krb5_kdc_admin_user'] }}"
+      kdc_admin_password: "{{ hostvars[groups['krb5_server'][0]]['krb5_kdc_admin_passwd'] }}"
+
+  # https://cloudera.github.io/cm_api/apidocs/v13/path__cm_commands_importAdminCredentials.html
+  - name: Import KDC admin credentials
+    uri:
+      url: "{{ cm_api_url }}/cm/commands/importAdminCredentials?username={{ kdc_admin_user }}&password={{ kdc_admin_password }}"
+      method: POST
+      status_code: 200
+      force_basic_auth: yes
+      user: "{{ scm_default_user }}"
+      password: "{{ scm_default_pass }}"
+      return_content: yes
   when: krb5_kdc_type != 'none'
