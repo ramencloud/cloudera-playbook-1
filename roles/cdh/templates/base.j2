@@ -14,11 +14,11 @@
   ],
   "services" : [
     {% set serv_j = joiner(",") %}
-    {% for service in cdh_services %}
+    {% for service in (cdh_services|selectattr('type', 'in', cdh_service_types | default(cdh_services | map(attribute='type'))))  %}
     {{ serv_j() }}
     {% set t = service['type'] + '.j2' %}{% include t %}
     {% endfor %}
   ],
-  "hostTemplates" : {% include 'host.j2' %},
+  "hostTemplates" : {% if hosts_layout is defined %}{{ hosts_layout | to_json }}{% else %}{% include 'host.j2' %}{% endif %},
   "instantiator" : {% include 'instantiator.j2' %}
 }
