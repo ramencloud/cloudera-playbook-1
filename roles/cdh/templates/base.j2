@@ -16,9 +16,14 @@
     {% set serv_j = joiner(",") %}
     {% for service in (cdh_services|selectattr('type', 'in', cdh_service_types | default(cdh_services | map(attribute='type'))))  %}
     {{ serv_j() }}
-    {% set t = service['type'] + '.j2' %}{% include t %}
+    {% if service['type'] + '_def_override' in vars %}
+        {{ lookup('vars', service['type'] + '_def_override') | to_nice_json }}
+    {% else %}
+        {% set t = service['type'] + '.j2' %}
+        {% include t %}
+    {% endif %}
     {% endfor %}
   ],
-  "hostTemplates" : {% if hosts_layout is defined %}{{ hosts_layout | to_json }}{% else %}{% include 'host.j2' %}{% endif %},
+  "hostTemplates" : {% if hosts_layout is defined %}{{ hosts_layout | to_nice_json }}{% else %}{% include 'host.j2' %}{% endif %},
   "instantiator" : {% include 'instantiator.j2' %}
 }
