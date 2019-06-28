@@ -60,3 +60,4 @@
 - include: license.yml
 - include: scm.yml
 - include: cms.yml
+  when: enable_cms | default(true)
