@@ -1,0 +1,15 @@
+# Check whether cluster already exists
+# https://cloudera.github.io/cm_api/apidocs/v13/path__clusters.html
+- name: Check whether cluster exists
+  uri:
+    url: "{{ cm_api_url }}/clusters/{{ cluster_display_name }}"
+    method: GET
+    status_code: 200,404
+    force_basic_auth: yes
+    user: "{{ scm_default_user }}"
+    password: "{{ scm_default_pass }}"
+    return_content: yes
+  register: clusters_resp
+
+- set_fact: cluster_exists={{ 'True' if clusters_resp.status == 200 else 'False' }}
+- debug: msg="Cluster '{{ cluster_display_name }}' exists - {{ cluster_exists }}"

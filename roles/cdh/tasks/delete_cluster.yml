@@ -1,0 +1,33 @@
+- name: stop cluster
+  uri:
+    url: "{{ cm_api_url }}/clusters/{{ cluster_display_name }}/commands/stop"
+    method: POST
+    force_basic_auth: yes
+    user: "{{ scm_default_user }}"
+    password: "{{ scm_default_pass }}"
+    return_content: yes
+  register: stop_cluster_resp
+
+- debug: var=stop_cluster_resp
+
+- name: wait for stop cluster to finish
+  uri:
+    url: "{{ cm_api_url }}/commands/{{ stop_cluster_resp.json.id }}"
+    force_basic_auth: yes
+    user: "{{ scm_default_user }}"
+    password: "{{ scm_default_pass }}"
+    return_content: yes
+  register: stop_cluster_command_status_resp
+  until: not stop_cluster_command_status_resp.json.active
+  retries: 30
+  delay: 10
+
+- name: delete cluster
+  uri:
+    url: "{{ cm_api_url }}/clusters/{{ cluster_display_name }}"
+    method: DELETE
+    force_basic_auth: yes
+    user: "{{ scm_default_user }}"
+    password: "{{ scm_default_pass }}"
+
+- set_fact: cluster_exists=no
