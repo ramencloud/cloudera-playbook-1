@@ -47,14 +47,21 @@
 - debug: var=template_resp
   when: cluster_exists == False
 
-- set_fact: command_id="{{ template_resp.json.id }}"
+- set_fact: _cluster_import_command_id="{{ template_resp.json.id }}"
   when: cluster_exists == False
 
-- debug: msg="Import cluster template command ID - {{ command_id }}"
+- debug: msg="Import cluster template command ID - {{ _cluster_import_command_id }}"
   when: cluster_exists == False
 
 - debug: msg="Login to Cloudera Manager to monitor import progress - http://{{ hostvars[scm_hostname]['inventory_hostname'] }}:{{ scm_port }}/cmf/commands/commands"
   when: cluster_exists == False
+
+- import_tasks: wait_for_command.yml
+  vars:
+    command_id: "{{ _cluster_import_command_id }}"
+    command_wait_num_retries: 360
+    command_wait_delay: 10
+  when: cluster_exists == False and wait_for_cluster_template_import | default(false)
 
 - file:
     path: "{{ tmp_dir }}/cluster.json"
