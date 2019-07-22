@@ -6,7 +6,7 @@
     password: "{{ scm_default_pass }}"
     return_content: yes
   register: _command_status_resp
-  until: not _command_status_resp.json.active
+  until: ('json' in _command_status_resp and not _command_status_resp.json.active)
   retries: "{{ command_wait_num_retries | default(360) }}"
   delay: "{{ command_wait_delay | default(10) }}"
 
