@@ -13,6 +13,7 @@ admin_server: w2k8-1.ad.sec.cloudera.com
 krb5_kdc_type: mit
 
 cdh_version: 5.8.3
+cdh_package_version: 5.8.3-1.cdh5.8.3.p0.2
 scm_version: 5.8.3
 
 cloudera_mirror: https://archive.cloudera.com

@@ -9,4 +9,4 @@ scm_repositories:
 
 scm_products:
   - product: CDH
-    version: "{{ cdh_version }}-1.cdh{{ cdh_version }}.p0.2"
+    version: "{{ cdh_package_version }}"
