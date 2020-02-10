@@ -1,45 +1,47 @@
 ---
 
-- name: Prepare Cloudera Manager settings
-  template:
-    src: "scm.j2"
-    dest: "{{ tmp_dir }}/scm.json"
-  delegate_to: localhost
-
 # https://cloudera.github.io/cm_api/apidocs/v13/path__cm_config.html
 - name: Update Cloudera Manager settings
   uri:
     url: "{{ cm_api_url }}/cm/config"
     method: PUT
     body_format: json
-    body: "{{ lookup('file', ''+ tmp_dir + '/scm.json') }}"
+    body: "{{ lookup('template', 'scm.j2', convert_data=False) }}"
     status_code: 200
     force_basic_auth: yes
     user: "{{ scm_default_user }}"
     password: "{{ scm_default_pass }}"
     return_content: yes
   register: scm_resp
-  delegate_to: localhost
-- debug: var=scm_resp
 
-- file:
-    path: "{{ tmp_dir }}/scm.json"
-    state: absent
-  delegate_to: localhost
+- debug:
+    var: scm_resp
+    verbosity: 1
 
-- block:
-  - set_fact:
-      kdc_admin_user: "{{ hostvars[groups['krb5_server'][0]]['krb5_kdc_admin_user'] }}"
-      kdc_admin_password: "{{ hostvars[groups['krb5_server'][0]]['krb5_kdc_admin_passwd'] }}"
-
-  # https://cloudera.github.io/cm_api/apidocs/v13/path__cm_commands_importAdminCredentials.html
-  - name: Import KDC admin credentials
-    uri:
-      url: "{{ cm_api_url }}/cm/commands/importAdminCredentials?username={{ kdc_admin_user }}&password={{ kdc_admin_password }}"
-      method: POST
-      status_code: 200
-      force_basic_auth: yes
-      user: "{{ scm_default_user }}"
-      password: "{{ scm_default_pass }}"
-      return_content: yes
+# https://cloudera.github.io/cm_api/apidocs/v13/path__cm_commands_importAdminCredentials.html
+- name: Import KDC admin credentials
+  uri:
+    url: "{{ cm_api_url }}/cm/commands/importAdminCredentials?username={{ krb5_kdc_admin_user }}&password={{ krb5_kdc_admin_passwd }}"
+    method: POST
+    status_code: 200
+    force_basic_auth: yes
+    user: "{{ scm_default_user }}"
+    password: "{{ scm_default_pass }}"
+    return_content: yes
+  register: response
   when: krb5_kdc_type != 'none'
+
+- name: Wait for KDC admin credentials import to complete
+  uri: 
+    url: "{{ cm_api_url }}/commands/{{ response.json.id }}"
+    body_format: json
+    force_basic_auth: yes
+    user: "{{ scm_default_user }}"
+    password: "{{ scm_default_pass }}"
+    return_content: yes
+  register: result
+  until: not result.json.active
+  retries: 30
+  delay: 10
+  when: krb5_kdc_type != 'none'
+  failed_when: result.json.success is defined and not result.json.success
