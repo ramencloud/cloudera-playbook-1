@@ -104,4 +104,4 @@
     return_content: yes
   register: start_resp
   failed_when: "'startTime' not in start_resp.content"
-  when: not cluster_exists
+  when: enable_cms | default(true) and not cluster_exists
