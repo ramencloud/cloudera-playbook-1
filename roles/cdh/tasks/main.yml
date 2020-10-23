@@ -84,13 +84,23 @@
     return_content: yes
   register: result
   until: ('json' in result and not result.json.active)
-  retries: 10
-  delay: 60
+  retries: 360
+  delay: 10
   when: not cluster_exists
   failed_when: "'Failed to import cluster template' in result.content"
 
 - debug:
     var: result
+  when: not cluster_exists
+
+- assert:
+    that: "not result.json.active"
+    msg: "Command {{ command_id }} timed out"
+  when: not cluster_exists
+
+- assert:
+    that: "result.json.success"
+    msg: "Command {{ command_id }} failed"
   when: not cluster_exists
 
 - name: Restart Cloudera Management Service
