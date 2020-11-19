@@ -63,6 +63,13 @@
 
 - name: Install Cloudera Manager Server
   hosts: scm_server
+  pre_tasks:
+    - name: Gather facts from ALL hosts (regardless of limit or tags)
+      setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: True
+      when: hostvars[item]['ansible_default_ipv4'] is not defined
+      with_items: "{{ groups['all'] }}"
   roles:
     - scm
   tags: cluster_template
@@ -72,4 +79,3 @@
   roles:
     - cdh
   tags: cluster_template
-
